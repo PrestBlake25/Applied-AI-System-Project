@@ -17,17 +17,30 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world recommendation systems combine many signals, such as user history, item similarity, and behavior from similar users, then continuously re-rank results based on feedback. In this simulation, I will prioritize transparent, content-based matching so it is easy to explain why a song was recommended, with the strongest emphasis on genre and mood fit, then energy closeness and acoustic preference.
 
-Some prompts to answer:
+Features used in this simulation:
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+- Song features: genre, mood, energy, acousticness, tempo_bpm, valence, danceability.
+- UserProfile features: favorite_genre, favorite_mood, target_energy, likes_acoustic.
 
-You can include a simple diagram or bullet list if helpful.
+This recommender follows a simple Input -> Process -> Output pipeline.
+
+1. Input (User Preferences + Song Catalog)
+- User preferences represent taste, such as preferred genre, mood, and target energy.
+- Songs are loaded from data/songs.csv.
+- Each song includes attributes like genre, mood, energy, tempo_bpm, valence, danceability, and acousticness.
+
+2. Process (Score Each Song in a Loop)
+- The system iterates through every song in the catalog.
+- For each song, it compares song attributes to the user preferences.
+- The scoring logic combines these comparisons into one numeric score.
+- For transparency, the system can also store a short explanation with each score.
+
+3. Output (Rank and Return Top K)
+- After all songs are scored, the full list is sorted from highest score to lowest score.
+- The top K songs are selected as the final recommendations.
+- The output is a ranked recommendation list.
 
 ---
 

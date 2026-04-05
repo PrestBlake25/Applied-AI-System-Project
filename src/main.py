@@ -17,7 +17,25 @@ def main() -> None:
 
     # Starter example profile
     user_prefs = {"genre": "pop", "mood": "happy", "energy": 0.8}
-
+    my_taste = {
+        "preferred_genres": ["hip-hop", "rock", "lofi"],
+        "target": {
+            "energy": 0.75,
+            "tempo_bpm": 115,
+            "valence": 0.60,
+            "danceability": 0.70,
+            "acousticness": 0.25
+        },
+        "weights": {
+            "genre": 0.25,
+            "mood": 0.10,
+            "energy": 0.25,
+            "tempo_bpm": 0.15,
+            "valence": 0.10,
+            "danceability": 0.10,
+            "acousticness": 0.05
+        }
+    }
     recommendations = recommend_songs(user_prefs, songs, k=5)
 
     print("\nTop recommendations:\n")
