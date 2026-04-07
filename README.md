@@ -42,6 +42,10 @@ This recommender follows a simple Input -> Process -> Output pipeline.
 - The top K songs are selected as the final recommendations.
 - The output is a ranked recommendation list.
 
+
+<img src="Recommendations.png">
+
+
 ---
 
 ## Getting Started

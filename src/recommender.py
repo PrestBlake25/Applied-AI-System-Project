@@ -1,5 +1,7 @@
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
+import csv
+from pathlib import Path
 
 @dataclass
 class Song:
@@ -50,15 +52,97 @@ def load_songs(csv_path: str) -> List[Dict]:
     Loads songs from a CSV file.
     Required by src/main.py
     """
-    # TODO: Implement CSV loading logic
-    print(f"Loading songs from {csv_path}...")
-    return []
+    path = Path(csv_path)
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
+    # Handle the common typo path used in some starter prompts.
+    if not path.exists() and path.name == "csongs.csv":
+        fallback = path.with_name("songs.csv")
+        if fallback.exists():
+            path = fallback
+
+    songs: List[Dict] = []
+    with path.open("r", newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            songs.append(
+                {
+                    "id": int(row["id"]),
+                    "title": row["title"],
+                    "artist": row["artist"],
+                    "genre": row["genre"],
+                    "mood": row["mood"],
+                    "energy": float(row["energy"]),
+                    "tempo_bpm": float(row["tempo_bpm"]),
+                    "valence": float(row["valence"]),
+                    "danceability": float(row["danceability"]),
+                    "acousticness": float(row["acousticness"]),
+                }
+            )
+
+    return songs
+
+
+def score_song(user_prefs: Dict, song: Dict) -> Tuple[int, str]:
+    """
+    Scores a single song against user preferences.
+
+    The function is intentionally simple and transparent:
+    - genre match: +4
+    - mood match: +3
+    - energy close match (<= 0.15): +2
+    - energy near match (<= 0.30): +1
+    - acoustic preference match: +1
+    """
+    score = 0
+    reasons: List[str] = []
+
+    pref_genre = (user_prefs.get("genre") or user_prefs.get("favorite_genre") or "").strip().lower()
+    song_genre = str(song.get("genre", "")).strip().lower()
+    if pref_genre and song_genre == pref_genre:
+        score += 4
+        reasons.append("genre match")
+
+    pref_mood = (user_prefs.get("mood") or user_prefs.get("favorite_mood") or "").strip().lower()
+    song_mood = str(song.get("mood", "")).strip().lower()
+    if pref_mood and song_mood == pref_mood:
+        score += 3
+        reasons.append("mood match")
+
+    target_energy = user_prefs.get("energy")
+    if target_energy is None:
+        target_energy = user_prefs.get("target_energy")
+    if target_energy is not None and "energy" in song:
+        diff = abs(float(song["energy"]) - float(target_energy))
+        if diff <= 0.15:
+            score += 2
+            reasons.append("energy very close")
+        elif diff <= 0.30:
+            score += 1
+            reasons.append("energy close")
+
+    likes_acoustic = user_prefs.get("likes_acoustic")
+    if likes_acoustic is not None and "acousticness" in song:
+        acoustic = float(song["acousticness"])
+        if bool(likes_acoustic) and acoustic >= 0.6:
+            score += 1
+            reasons.append("acoustic preference match")
+        elif not bool(likes_acoustic) and acoustic < 0.6:
+            score += 1
+            reasons.append("non-acoustic preference match")
+
+    explanation = ", ".join(reasons) if reasons else "No strong preference matches"
+    return score, explanation
+
+def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, int, str]]:
     """
     Functional implementation of the recommendation logic.
     Required by src/main.py
     """
-    # TODO: Implement scoring and ranking logic
-    # Expected return format: (song_dict, score, explanation)
-    return []
+    scored: List[Tuple[Dict, int, str]] = []
+
+    for song in songs:
+        score, explanation = score_song(user_prefs, song)
+        scored.append((song, score, explanation))
+
+    scored.sort(key=lambda item: item[1], reverse=True)
+    return scored[:k]
