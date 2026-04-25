@@ -18,9 +18,6 @@ except ImportError:
 
 
 def main() -> None:
-    songs = load_songs("data/songs.csv")
-    print(f"Loaded {len(songs)} songs.")
-
     print("\nTell me what kind of music you want.")
     print("Example: something like Metallica but a bit more mellow")
     print("Type 'quit' to exit.\n")
@@ -40,11 +37,29 @@ def main() -> None:
             print("Goodbye.")
             break
 
+        try:
+            count_input = input("How many songs do you want to hear? ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nGoodbye.")
+            break
+
+        if count_input.lower() in {"q", "quit", "exit"}:
+            print("Goodbye.")
+            break
+
+        try:
+            result_count = int(count_input)
+            if result_count <= 0:
+                raise ValueError
+        except ValueError:
+            print("Please enter a positive number for how many songs to return.\n")
+            continue
+
         print(f"\n{'='*70}")
         print(f"Request: {prompt}")
         print(f"{'='*70}\n")
 
-        rag_recommendations = recommend_songs_with_rag(prompt, songs, k=5, internet_k=12)
+        rag_recommendations = recommend_songs_with_rag(prompt, songs, k=result_count, internet_k=12)
 
         if not rag_recommendations:
             print("No recommendations found. Try another prompt.\n")

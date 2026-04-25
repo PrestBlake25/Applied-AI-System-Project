@@ -51,7 +51,7 @@ def test_main_prints_recommendations(monkeypatch, capsys):
 
     monkeypatch.setattr("src.main.recommend_songs_with_rag", fake_recommend)
 
-    responses = iter(["something mellow", "quit"])
+    responses = iter(["something mellow", "1", "quit"])
     monkeypatch.setattr("builtins.input", lambda _prompt: next(responses))
 
     main()
