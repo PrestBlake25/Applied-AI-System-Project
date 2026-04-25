@@ -18,6 +18,8 @@ except ImportError:
 
 
 def main() -> None:
+    songs = load_songs("data/songs.csv")
+
     print("\nTell me what kind of music you want.")
     print("Example: something like Metallica but a bit more mellow")
     print("Type 'quit' to exit.\n")
@@ -74,6 +76,16 @@ def main() -> None:
             print(f"   Genre: {song['genre']}, Mood: {song['mood']}, Energy: {song['energy']}")
             print(f"   Match: {explanation}")
             print()
+
+        try:
+            end_program = input("Do you want to end the program? (yes/no): ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\nGoodbye.")
+            break
+
+        if end_program in {"y", "yes", "q", "quit", "exit"}:
+            print("Goodbye.")
+            break
 
 
 if __name__ == "__main__":
