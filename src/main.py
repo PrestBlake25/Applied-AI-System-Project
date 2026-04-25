@@ -11,78 +11,53 @@ You will implement the functions in recommender.py:
 
 try:
     # Supports module execution: python -m src.main
-    from .recommender import load_songs, recommend_songs
+    from .recommender import load_songs, recommend_songs_with_rag
 except ImportError:
     # Supports direct script execution: python src/main.py
-    from recommender import load_songs, recommend_songs
+    from recommender import load_songs, recommend_songs_with_rag
 
 
 def main() -> None:
-    songs = load_songs("data/songs.csv") 
+    songs = load_songs("data/songs.csv")
     print(f"Loaded {len(songs)} songs.")
 
-    # Sample user preference profiles for quick experimentation.
-    user_profiles = {
-        "High-Energy Pop": {
-            "genre": "pop",
-            "mood": "happy",
-            "energy": 0.85,
-            "likes_acoustic": False,
-        },
-        "Chill Lofi": {
-            "genre": "lofi",
-            "mood": "chill",
-            "energy": 0.35,
-            "likes_acoustic": True,
-        },
-        "Deep Intense Rock": {
-            "genre": "rock",
-            "mood": "intense",
-            "energy": 0.9,
-            "likes_acoustic": False,
-        },
-        "Rock But Calm Mood Clash": {
-            "genre": "rock",
-            "mood": "peaceful",
-            "energy": 0.92,
-            "likes_acoustic": True
-        },
-        "Ultra-Low Energy Party Ask": {
-            "genre": "electronic",
-            "mood": "energetic",
-            "energy": 0.05,
-            "likes_acoustic": False
-        },
-        "Acoustic Contradiction Profile": {
-            "genre": "lofi",
-            "mood": "chill",
-            "energy": 0.35,
-            "likes_acoustic": False
-        }
-    }
+    print("\nTell me what kind of music you want.")
+    print("Example: something like Metallica but a bit more mellow")
+    print("Type 'quit' to exit.\n")
 
-    # Loop through each profile and show top 5 recommendations
-    for profile_name, user_prefs in user_profiles.items():
+    while True:
+        try:
+            prompt = input("What do you want to hear? ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nGoodbye.")
+            break
+
+        if not prompt:
+            print("Please enter a music request, or type 'quit' to exit.\n")
+            continue
+
+        if prompt.lower() in {"q", "quit", "exit"}:
+            print("Goodbye.")
+            break
+
         print(f"\n{'='*70}")
-        print(f"Profile: {profile_name}")
-        print(f"Preferences: {user_prefs}")
+        print(f"Request: {prompt}")
         print(f"{'='*70}\n")
 
-        recommendations = recommend_songs(user_prefs, songs, k=5)
+        rag_recommendations = recommend_songs_with_rag(prompt, songs, k=5, internet_k=12)
 
-        print("Top 5 recommendations:\n")
-        for rank, rec in enumerate(recommendations, start=1):
-            # The recommender returns (song, score, explanation).
+        if not rag_recommendations:
+            print("No recommendations found. Try another prompt.\n")
+            continue
+
+        print("Top recommendations (internet-augmented):\n")
+        for rank, rec in enumerate(rag_recommendations, start=1):
             song, score, explanation = rec
-            reasons = [] if explanation == "No strong preference matches" else [r.strip() for r in explanation.split(",")]
-
-            print(f"{rank}. {song['title']} by {song['artist']}")
+            source = song.get("source", "local")
+            print(f"{rank}. {song['title']} by {song['artist']} [{source}]")
             print(f"   Score: {score}")
             print(f"   Genre: {song['genre']}, Mood: {song['mood']}, Energy: {song['energy']}")
-            if reasons:
-                print(f"   Match: {', '.join(reasons)}")
-            else:
-                print("   Match: No strong preference matches")
+            print(f"   Match: {explanation}")
             print()
 
 

@@ -3,6 +3,11 @@ from dataclasses import dataclass
 import csv
 from pathlib import Path
 
+try:
+    from .rag import retrieve_songs_for_prompt
+except ImportError:
+    from rag import retrieve_songs_for_prompt
+
 @dataclass
 class Song:
     """
@@ -148,6 +153,43 @@ def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tup
 
     for song in songs:
         score, explanation = score_song(user_prefs, song)
+        scored.append((song, score, explanation))
+
+    scored.sort(key=lambda item: item[1], reverse=True)
+    return scored[:k]
+
+
+def recommend_songs_with_rag(
+    user_prompt: str,
+    local_songs: List[Dict],
+    k: int = 5,
+    internet_k: int = 10,
+    api_key: Optional[str] = None,
+) -> List[Tuple[Dict, float, str]]:
+    """
+    Blend local catalog scoring with internet retrieval for prompt-based requests.
+    """
+    internet_songs, prompt_prefs = retrieve_songs_for_prompt(
+        user_prompt,
+        max_results=internet_k,
+        api_key=api_key,
+    )
+
+    combined: List[Dict] = []
+    seen_keys = set()
+
+    for song in [*local_songs, *internet_songs]:
+        key = (str(song.get("title", "")).strip().lower(), str(song.get("artist", "")).strip().lower())
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        combined.append(song)
+
+    scored: List[Tuple[Dict, float, str]] = []
+    for song in combined:
+        score, explanation = score_song(prompt_prefs, song)
+        if song.get("source") == "internet":
+            explanation = f"{explanation}, retrieved from internet"
         scored.append((song, score, explanation))
 
     scored.sort(key=lambda item: item[1], reverse=True)
