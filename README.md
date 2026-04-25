@@ -48,7 +48,7 @@ Data flow:
 8. Prompt user to continue or end program
 
 ## System Diagram
-![System Diagram](assets/MuiscRecLogic.png)
+![System Diagram](assets\MusicRecLogic.png)
 
 ## Project Structure
 ```text

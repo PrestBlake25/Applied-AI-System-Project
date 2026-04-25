@@ -18,6 +18,7 @@ except ImportError:
 
 
 def main() -> None:
+    songs = load_songs("data/songs.csv")
     print("\nTell me what kind of music you want.")
     print("Example: something like Metallica but a bit more mellow")
     print("Type 'quit' to exit.\n")
