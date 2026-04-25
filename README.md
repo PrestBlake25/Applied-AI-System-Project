@@ -1,4 +1,4 @@
-# AI Music Recommender with Internet Retrieval (RAG)
+# K-Music: AI Music Recommender with Internet Retrieval (RAG)
 
 ## Overview
 This project extends the Module 3 Music Recommender Simulation into a prompt-driven recommender that blends:
